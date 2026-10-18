@@ -6,7 +6,7 @@ import { formatDateTime } from "@/lib/dates";
 import { formatMXN } from "@/lib/money";
 import { ApplicationStatusBadge } from "@/components/labels";
 import { ReviewApplicationActions } from "@/components/forms/admin-forms";
-import { Avatar, Badge, Card, EmptyState, PageHeader } from "@/components/ui";
+import { Alert, Avatar, Badge, Card, EmptyState, PageHeader } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Solicitudes de tutor" };
 
@@ -16,8 +16,13 @@ const include = {
   reviewedBy: { select: { name: true } },
 };
 
-export default async function ApplicationsPage() {
+export default async function ApplicationsPage({ searchParams }: PageProps<"/admin/solicitudes">) {
   await requireRole(["ADMIN"], "/admin/solicitudes");
+  const sp = await searchParams;
+  const flashId = typeof sp.aprobada === "string" ? sp.aprobada : typeof sp.rechazada === "string" ? sp.rechazada : null;
+  const flash = flashId
+    ? await prisma.tutorApplication.findUnique({ where: { id: flashId }, include: { user: { select: { name: true } } } })
+    : null;
   const [pending, reviewed] = await Promise.all([
     prisma.tutorApplication.findMany({ where: { status: "PENDING" }, orderBy: { createdAt: "asc" }, include }),
     prisma.tutorApplication.findMany({
@@ -34,6 +39,17 @@ export default async function ApplicationsPage() {
         title="Solicitudes de tutor"
         description="Revisa el kárdex o constancia antes de aprobar. Solo los tutores aprobados aparecen en las búsquedas."
       />
+
+      {flash?.status === "APPROVED" ? (
+        <Alert tone="success" className="mb-6">
+          Solicitud aprobada. <strong>{flash.user.name}</strong> ya es tutor y aparece en las búsquedas.
+        </Alert>
+      ) : null}
+      {flash?.status === "REJECTED" ? (
+        <Alert tone="info" className="mb-6">
+          Solicitud de <strong>{flash.user.name}</strong> rechazada. Se le notificó el motivo.
+        </Alert>
+      ) : null}
 
       <h2 className="mb-3 text-lg font-semibold">Pendientes ({pending.length})</h2>
       {pending.length === 0 ? (

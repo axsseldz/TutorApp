@@ -11,8 +11,6 @@ export function CancelSessionButton({ sessionId, asTutor }: { sessionId: string;
   const [open, setOpen] = useState(false);
   const [state, action] = useActionState(cancelSessionAction.bind(null, sessionId), initialState);
 
-  if (state.ok) return <Alert tone="success">{state.message}</Alert>;
-
   if (!open) {
     return (
       <div className="space-y-2">

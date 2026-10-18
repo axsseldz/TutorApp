@@ -10,8 +10,9 @@ import { Alert, ButtonLink, Card, PageHeader } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Mi perfil" };
 
-export default async function ProfilePage() {
+export default async function ProfilePage({ searchParams }: PageProps<"/perfil">) {
   const session = await requireUser("/perfil");
+  const { solicitud } = await searchParams;
   const [user, subjects, applications] = await Promise.all([
     prisma.user.findUniqueOrThrow({ where: { id: session.id } }),
     prisma.subject.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
@@ -68,6 +69,11 @@ export default async function ProfilePage() {
                 </div>
               ) : latest?.status === "PENDING" ? (
                 <div className="space-y-4">
+                  {solicitud === "enviada" ? (
+                    <Alert tone="success">
+                      <strong>¡Solicitud enviada!</strong> Un administrador revisará tu documento.
+                    </Alert>
+                  ) : null}
                   <Alert tone="info">
                     <span className="inline-flex items-center gap-1 font-semibold">
                       <Hourglass className="size-4" aria-hidden /> Tu solicitud está en revisión.

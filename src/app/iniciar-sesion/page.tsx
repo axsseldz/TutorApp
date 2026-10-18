@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getCurrentUser, homeForRole } from "@/lib/auth";
+import { safeInternalPath } from "@/lib/safe-path";
 import { AuthShell } from "@/components/auth-shell";
 import { LoginForm } from "@/components/forms/auth-forms";
 import { Alert } from "@/components/ui";
@@ -9,7 +10,7 @@ export const metadata: Metadata = { title: "Iniciar sesión" };
 
 export default async function LoginPage({ searchParams }: PageProps<"/iniciar-sesion">) {
   const { next } = await searchParams;
-  const nextPath = typeof next === "string" && next.startsWith("/") && !next.startsWith("//") ? next : undefined;
+  const nextPath = safeInternalPath(next) ?? undefined;
   const user = await getCurrentUser();
   if (user) redirect(nextPath ?? homeForRole(user.role));
 

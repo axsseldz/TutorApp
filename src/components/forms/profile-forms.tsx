@@ -94,8 +94,6 @@ export function TutorApplicationForm({ subjects }: { subjects: { id: string; nam
   const e = state.errors;
   const f = state.fields;
 
-  if (state.ok) return <Alert tone="success">{state.message}</Alert>;
-
   return (
     <form action={action} className="space-y-5" noValidate>
       {state.message ? <Alert tone="error">{state.message}</Alert> : null}

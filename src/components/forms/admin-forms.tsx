@@ -12,9 +12,6 @@ export function ReviewApplicationActions({ applicationId }: { applicationId: str
   const [rejectState, reject] = useActionState(rejectApplicationAction.bind(null, applicationId), initialState);
   const [rejecting, setRejecting] = useState(false);
 
-  if (approveState.ok) return <Alert tone="success">{approveState.message}</Alert>;
-  if (rejectState.ok) return <Alert tone="info">{rejectState.message}</Alert>;
-
   return (
     <div className="space-y-3">
       {approveState.message ? <Alert tone="error">{approveState.message}</Alert> : null}

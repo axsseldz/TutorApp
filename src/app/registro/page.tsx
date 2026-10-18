@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { BadgeCheck, CalendarCheck, Wallet } from "lucide-react";
 import { getCurrentUser, homeForRole } from "@/lib/auth";
+import { safeInternalPath } from "@/lib/safe-path";
 import { AuthShell } from "@/components/auth-shell";
 import { RegisterForm } from "@/components/forms/auth-forms";
 
@@ -9,7 +10,7 @@ export const metadata: Metadata = { title: "Crear cuenta" };
 
 export default async function RegisterPage({ searchParams }: PageProps<"/registro">) {
   const { next } = await searchParams;
-  const nextPath = typeof next === "string" && next.startsWith("/") && !next.startsWith("//") ? next : undefined;
+  const nextPath = safeInternalPath(next) ?? undefined;
   const user = await getCurrentUser();
   if (user) redirect(nextPath ?? homeForRole(user.role));
 

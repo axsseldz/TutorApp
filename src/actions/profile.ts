@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { echoFields, fieldErrors, type ActionState } from "@/lib/action-state";
@@ -67,5 +68,5 @@ export async function applyAsTutorAction(_prev: ActionState, formData: FormData)
   });
   revalidatePath("/perfil");
   revalidatePath("/admin", "layout");
-  return { ok: true, message: "¡Solicitud enviada! Te avisaremos cuando un administrador la revise." };
+  redirect("/perfil?solicitud=enviada#ser-tutor");
 }

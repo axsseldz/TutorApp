@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireRole } from "@/lib/auth";
 import { fieldErrors, type ActionState } from "@/lib/action-state";
@@ -57,7 +58,7 @@ export async function approveApplicationAction(applicationId: string, _prev: Act
     );
   });
   revalidateAdmin();
-  return { ok: true, message: "Solicitud aprobada. El usuario ya es tutor." };
+  redirect(`/admin/solicitudes?aprobada=${app.id}`);
 }
 
 /** Regla 2: el admin rechaza con un motivo que ve el solicitante. */
@@ -96,5 +97,5 @@ export async function rejectApplicationAction(
     );
   });
   revalidateAdmin();
-  return { ok: true, message: "Solicitud rechazada. Se notificó al estudiante." };
+  redirect(`/admin/solicitudes?rechazada=${app.id}`);
 }

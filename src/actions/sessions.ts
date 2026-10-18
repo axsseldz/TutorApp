@@ -94,12 +94,7 @@ export async function cancelSessionAction(
   if (!done) return { message: "Esta sesión ya no se puede cancelar." };
 
   revalidatePath("/", "layout");
-  return {
-    ok: true,
-    message: byStudent
-      ? "Sesión cancelada. Tu pago fue reembolsado (simulado)."
-      : "Sesión cancelada. Avisamos al estudiante y se le reembolsó el pago.",
-  };
+  redirect(byStudent ? `/sesiones?cancelada=${session.id}` : `/sesiones?vista=tutor&cancelada=${session.id}`);
 }
 
 /** Regla 8: el tutor marca la sesión como COMPLETADA (una vez que empezó). */

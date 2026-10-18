@@ -46,6 +46,8 @@ export default async function MySessionsPage({ searchParams }: PageProps<"/sesio
   const upcoming = sessions.filter((s) => s.status === "PAGADA");
   const history = sessions.filter((s) => s.status !== "PAGADA").reverse();
   const justBooked = typeof sp.reservada === "string" ? sessions.find((s) => s.id === sp.reservada) : undefined;
+  const justCancelled =
+    typeof sp.cancelada === "string" ? sessions.find((s) => s.id === sp.cancelada && s.status === "CANCELADA") : undefined;
   const current = now();
 
   return (
@@ -75,6 +77,14 @@ export default async function MySessionsPage({ searchParams }: PageProps<"/sesio
           <strong>¡Reserva confirmada!</strong> Pagaste {formatMXN(justBooked.payment?.amountCents ?? 0)} (folio{" "}
           {justBooked.payment?.reference}). Tu sesión de {justBooked.subject.name} con {justBooked.tutor.name} es el{" "}
           {formatDay(justBooked.startsAt).toLowerCase()} a las {formatTimeRange(justBooked.startsAt, justBooked.endsAt)}.
+        </Alert>
+      ) : null}
+      {justCancelled ? (
+        <Alert tone="success" className="mb-6">
+          <strong>Sesión cancelada.</strong>{" "}
+          {view === "tutor"
+            ? `Avisamos a ${justCancelled.student.name} y se le reembolsó el pago completo. El horario volvió a estar disponible.`
+            : `Se reembolsó tu pago de ${formatMXN(justCancelled.payment?.amountCents ?? 0)} (simulado) y avisamos a tu tutor.`}
         </Alert>
       ) : null}
       {sp.resena === "1" ? (

@@ -1,3 +1,4 @@
+import path from "node:path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -13,6 +14,8 @@ const nextConfig: NextConfig = {
     },
   },
   turbopack: {
+    // Fija la raíz del proyecto (evita que Turbopack tome un package-lock.json de una carpeta superior).
+    root: path.join(__dirname),
     rules: {
       "*.css": {
         loaders: ["@tailwindcss/turbopack"],

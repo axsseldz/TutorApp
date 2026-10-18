@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { now } from "@/lib/dates";
+import { safeInternalPath } from "@/lib/safe-path";
 
 /** Marca una notificación como leída y lleva al usuario a su enlace. */
 export async function openNotificationAction(formData: FormData): Promise<void> {
@@ -17,7 +18,8 @@ export async function openNotificationAction(formData: FormData): Promise<void> 
   }
   revalidatePath("/", "layout");
   // Solo enlaces internos.
-  if (n.link && n.link.startsWith("/") && !n.link.startsWith("//")) redirect(n.link);
+  const link = safeInternalPath(n.link);
+  if (link) redirect(link);
 }
 
 export async function markAllNotificationsReadAction(): Promise<void> {

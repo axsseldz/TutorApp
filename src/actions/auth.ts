@@ -6,13 +6,7 @@ import { prisma } from "@/lib/db";
 import { createSession, destroySession, homeForRole } from "@/lib/auth";
 import { echoFields, fieldErrors, type ActionState } from "@/lib/action-state";
 import { loginSchema, registerSchema } from "@/lib/validation";
-
-/** Solo permite redirecciones internas (evita open redirects con ?next=). */
-function safeNext(next: FormDataEntryValue | null): string | null {
-  if (typeof next !== "string") return null;
-  if (!next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) return null;
-  return next;
-}
+import { safeInternalPath } from "@/lib/safe-path";
 
 /** Regla 1: registro solo con correo @uabc.edu.mx; todos entran como STUDENT. */
 export async function registerAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
@@ -42,7 +36,7 @@ export async function registerAction(_prev: ActionState, formData: FormData): Pr
     },
   });
   await createSession(user.id);
-  redirect(safeNext(formData.get("next")) ?? "/tutores?bienvenida=1");
+  redirect(safeInternalPath(formData.get("next")) ?? "/tutores?bienvenida=1");
 }
 
 export async function loginAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
@@ -59,7 +53,7 @@ export async function loginAction(_prev: ActionState, formData: FormData): Promi
     return { message: "Correo o contraseña incorrectos.", fields };
   }
   await createSession(user.id);
-  redirect(safeNext(formData.get("next")) ?? homeForRole(user.role));
+  redirect(safeInternalPath(formData.get("next")) ?? homeForRole(user.role));
 }
 
 export async function logoutAction() {
