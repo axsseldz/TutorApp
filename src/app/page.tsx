@@ -61,7 +61,7 @@ export default async function LandingPage() {
                   <ButtonLink
                     href={homeForRole(user.role)}
                     size="lg"
-                    className="bg-white/10 ring-1 ring-white/30 hover:bg-white/20"
+                    variant="glass"
                   >
                     Ir a mi panel <ArrowRight className="size-5" aria-hidden />
                   </ButtonLink>
@@ -74,7 +74,7 @@ export default async function LandingPage() {
                   <ButtonLink
                     href="/iniciar-sesion"
                     size="lg"
-                    className="bg-white/10 ring-1 ring-white/30 hover:bg-white/20"
+                    variant="glass"
                   >
                     Iniciar sesión
                   </ButtonLink>
@@ -235,7 +235,7 @@ export default async function LandingPage() {
               <Wallet className="size-6 shrink-0" aria-hidden />
               <p className="text-sm">Panel de ganancias con ingresos brutos, comisión e ingreso neto por mes.</p>
             </div>
-            <ButtonLink href={user ? "/perfil#ser-tutor" : "/registro"} className="bg-white text-orange-600 hover:bg-orange-50" size="lg">
+            <ButtonLink href={user ? "/perfil#ser-tutor" : "/registro"} variant="inverse" size="lg">
               Quiero ser tutor
             </ButtonLink>
           </div>

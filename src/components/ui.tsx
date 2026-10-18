@@ -8,7 +8,7 @@ export function cn(...classes: (string | false | null | undefined)[]) {
   return classes.filter(Boolean).join(" ");
 }
 
-type Variant = "primary" | "accent" | "secondary" | "ghost" | "danger";
+type Variant = "primary" | "accent" | "secondary" | "ghost" | "danger" | "inverse" | "glass";
 type Size = "sm" | "md" | "lg";
 
 export function buttonClass(variant: Variant = "primary", size: Size = "md", extra?: string) {
@@ -22,6 +22,9 @@ export function buttonClass(variant: Variant = "primary", size: Size = "md", ext
     variant === "secondary" && "border border-slate-300 bg-white text-slate-800 hover:bg-slate-50",
     variant === "ghost" && "text-slate-700 hover:bg-slate-100",
     variant === "danger" && "border border-red-200 bg-white text-red-700 hover:bg-red-50",
+    // Para fondos de color (hero azul, bloque naranja)
+    variant === "inverse" && "bg-white text-orange-600 hover:bg-orange-50",
+    variant === "glass" && "bg-white/10 text-white ring-1 ring-white/30 hover:bg-white/20",
     extra,
   );
 }

@@ -115,8 +115,8 @@ export default async function TutorDashboardPage() {
                               )}
                               {b.location ?? b.meetingUrl}
                             </span>
-                            <span>
-                              · {formatDuration(minutes)} · {formatMXN(sessionPriceCents(profile.hourlyRateCents, minutes))}
+                            <span className="text-slate-500">
+                              {formatDuration(minutes)} · {formatMXN(sessionPriceCents(profile.hourlyRateCents, minutes))}
                             </span>
                           </div>
                         </div>

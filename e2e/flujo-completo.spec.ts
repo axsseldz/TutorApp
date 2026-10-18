@@ -1,3 +1,4 @@
+import Database from "better-sqlite3";
 import { expect, test, type Page } from "@playwright/test";
 
 // Recorre el flujo principal de TutorPar v1:
@@ -237,6 +238,10 @@ test.describe.serial("Flujo completo de TutorPar", () => {
     await page.waitForURL(/\/sesiones\?resena=1/);
     await expect(page.getByText("¡Gracias por tu reseña!")).toBeVisible();
     await expect(page.locator("li", { hasText: "Límites y continuidad" }).getByText("Tu reseña:")).toBeVisible();
+    // No se puede reseñar dos veces la misma sesión.
+    await page.goBack();
+    await page.reload();
+    await expect(page.getByText("Ya calificaste esta sesión")).toBeVisible();
 
     await page.goto(`/tutores/${tutorId}`);
     await expect(page.getByText("Excelente explicación de límites")).toBeVisible();
@@ -281,5 +286,23 @@ test.describe.serial("Flujo completo de TutorPar", () => {
     await expect(page.getByText("Tu última solicitud fue rechazada.")).toBeVisible();
     await expect(page.getByText(/no muestra la calificación de Física/)).toBeVisible();
     await expect(page.getByRole("button", { name: "Enviar solicitud" })).toBeVisible();
+  });
+
+  test("12. Una sesión pagada pasa sola a COMPLETADA cuando termina su horario", async ({ page }) => {
+    // Simula el paso del tiempo moviendo la sesión de Física (seed) al pasado.
+    const db = new Database("prisma/dev.db");
+    const iso = (d: Date) => d.toISOString().replace("Z", "+00:00");
+    db.prepare(
+      "UPDATE TutoringSession SET startsAt = ?, endsAt = ? WHERE status = 'PAGADA' AND notes LIKE '%tiro parab%'",
+    ).run(iso(new Date(Date.now() - 2 * 3600_000)), iso(new Date(Date.now() - 3600_000)));
+    db.close();
+
+    await login(page, STUDENT.email, STUDENT.password);
+    await page.goto("/sesiones");
+    const card = page.locator("#historial ~ ul li", { hasText: "tiro parabólico" });
+    await expect(card.getByText("Completada")).toBeVisible();
+    await expect(card.getByRole("link", { name: "Dejar reseña" })).toBeVisible();
+    await page.goto("/notificaciones");
+    await expect(page.getByText("¿Cómo te fue en tu sesión?").first()).toBeVisible();
   });
 });
