@@ -1,0 +1,219 @@
+// Esquema de datos de TutorPar v1 (SQLite).
+// Montos en centavos de MXN (enteros) para evitar errores de redondeo.
+// Fechas en UTC; la interfaz las muestra en America/Tijuana.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum Role {
+  STUDENT
+  TUTOR
+  ADMIN
+}
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum Modality {
+  PRESENCIAL
+  EN_LINEA
+}
+
+enum SessionStatus {
+  PAGADA
+  COMPLETADA
+  CANCELADA
+}
+
+enum PaymentStatus {
+  PAGADO
+  REEMBOLSADO
+}
+
+enum NotificationType {
+  RESERVA_NUEVA
+  CANCELACION
+  TUTOR_APROBADO
+  TUTOR_RECHAZADO
+  RESENA_NUEVA
+  SESION_COMPLETADA
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  career       String?
+  semester     Int?
+  phone        String?
+  role         Role     @default(STUDENT)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tutorProfile         TutorProfile?
+  applications         TutorApplication[]  @relation("ApplicantApplications")
+  reviewedApplications TutorApplication[]  @relation("ReviewerApplications")
+  availabilityBlocks   AvailabilityBlock[]
+  sessionsAsStudent    TutoringSession[]   @relation("StudentSessions")
+  sessionsAsTutor      TutoringSession[]   @relation("TutorSessions")
+  cancelledSessions    TutoringSession[]   @relation("CancelledSessions")
+  reviewsWritten       Review[]            @relation("ReviewAuthor")
+  reviewsReceived      Review[]            @relation("ReviewTutor")
+  notifications        Notification[]
+}
+
+model Subject {
+  id   String @id @default(cuid())
+  name String @unique
+  slug String @unique
+
+  tutors       TutorProfile[]     @relation("TutorSubjects")
+  applications TutorApplication[] @relation("ApplicationSubjects")
+  sessions     TutoringSession[]
+}
+
+// Perfil público de un tutor aprobado (se crea al aprobar la solicitud).
+model TutorProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  bio             String   @default("")
+  hourlyRateCents Int
+  approvedAt      DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjects Subject[] @relation("TutorSubjects")
+}
+
+// Solicitud para ser tutor; un admin la aprueba o rechaza con motivo.
+model TutorApplication {
+  id              String            @id @default(cuid())
+  userId          String
+  status          ApplicationStatus @default(PENDING)
+  documentPath    String // nombre del archivo dentro de /uploads
+  documentName    String // nombre original del archivo
+  documentMime    String
+  hourlyRateCents Int
+  bio             String            @default("")
+  rejectionReason String?
+  reviewedById    String?
+  reviewedAt      DateTime?
+  createdAt       DateTime          @default(now())
+
+  user       User      @relation("ApplicantApplications", fields: [userId], references: [id], onDelete: Cascade)
+  reviewedBy User?     @relation("ReviewerApplications", fields: [reviewedById], references: [id])
+  subjects   Subject[] @relation("ApplicationSubjects")
+
+  @@index([status])
+  @@index([userId])
+}
+
+// Bloque de disponibilidad publicado por un tutor.
+model AvailabilityBlock {
+  id         String   @id @default(cuid())
+  tutorId    String
+  startsAt   DateTime
+  endsAt     DateTime
+  modality   Modality
+  location   String? // lugar en el campus (PRESENCIAL)
+  meetingUrl String? // enlace de Meet/Zoom (EN_LINEA)
+  isBooked   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  tutor    User              @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  sessions TutoringSession[]
+
+  @@index([tutorId, startsAt])
+}
+
+// Sesión reservada. Copia los datos del bloque para conservar el historial.
+model TutoringSession {
+  id                 String        @id @default(cuid())
+  blockId            String? // null si el tutor borró el bloque después de una cancelación
+  studentId          String
+  tutorId            String
+  subjectId          String
+  status             SessionStatus @default(PAGADA)
+  startsAt           DateTime
+  endsAt             DateTime
+  modality           Modality
+  location           String?
+  meetingUrl         String?
+  notes              String? // tema o dudas que lleva el estudiante
+  completedAt        DateTime?
+  cancelledAt        DateTime?
+  cancelledById      String?
+  cancellationReason String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  block       AvailabilityBlock? @relation(fields: [blockId], references: [id], onDelete: SetNull)
+  student     User               @relation("StudentSessions", fields: [studentId], references: [id])
+  tutor       User               @relation("TutorSessions", fields: [tutorId], references: [id])
+  cancelledBy User?              @relation("CancelledSessions", fields: [cancelledById], references: [id])
+  subject     Subject            @relation(fields: [subjectId], references: [id])
+  payment     Payment?
+  review      Review?
+
+  @@index([studentId])
+  @@index([tutorId])
+  @@index([status, endsAt])
+}
+
+// Pago simulado de una sesión.
+model Payment {
+  id               String        @id @default(cuid())
+  sessionId        String        @unique
+  amountCents      Int // total que paga el estudiante
+  commissionRate   Float // tasa aplicada al momento del pago (p. ej. 0.15)
+  commissionCents  Int // comisión de la plataforma
+  tutorPayoutCents Int // lo que recibe el tutor
+  status           PaymentStatus @default(PAGADO)
+  reference        String        @unique // folio falso, p. ej. SIM-XXXX
+  cardLast4        String?
+  paidAt           DateTime      @default(now())
+  refundedAt       DateTime?
+
+  session TutoringSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  sessionId String   @unique
+  studentId String
+  tutorId   String
+  rating    Int // 1 a 5
+  comment   String
+  createdAt DateTime @default(now())
+
+  session TutoringSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  student User            @relation("ReviewAuthor", fields: [studentId], references: [id])
+  tutor   User            @relation("ReviewTutor", fields: [tutorId], references: [id])
+
+  @@index([tutorId])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String
+  link      String?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+}
