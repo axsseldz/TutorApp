@@ -9,7 +9,10 @@ export function safeInternalPath(next: unknown): string | null {
     const base = "http://tutorpar.local";
     const url = new URL(next, base);
     if (url.origin !== base) return null;
-    return url.pathname + url.search + url.hash;
+    const out = url.pathname + url.search + url.hash;
+    // La normalización puede producir "//host" (p. ej. "/.//evil.com"): se vuelve a validar.
+    if (!out.startsWith("/") || out.startsWith("//") || out.startsWith("/\\")) return null;
+    return out;
   } catch {
     return null;
   }
