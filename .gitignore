@@ -43,8 +43,13 @@ next-env.d.ts
 
 # prisma
 /src/generated/
-/prisma/*.db
-/prisma/*.db-journal
+# Bases SQLite (en cualquier carpeta; contienen datos de usuarios)
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
 
 # archivos subidos (kárdex/constancias)
 /uploads/*
