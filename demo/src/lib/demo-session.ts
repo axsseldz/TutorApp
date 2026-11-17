@@ -24,7 +24,10 @@ export function safeInternalPath(value: unknown): string | null {
     const base = "https://interno.invalid";
     const url = new URL(value, base);
     if (url.origin !== base) return null;
-    return url.pathname + url.search + url.hash;
+    // Los segmentos "." y ".." pueden volver a producir "//dominio" ("/.//evil.com").
+    const path = url.pathname + url.search + url.hash;
+    if (!path.startsWith("/") || path.startsWith("//") || path.includes("\\")) return null;
+    return path;
   } catch {
     return null;
   }
