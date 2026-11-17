@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* La demo visual (demo/) es una app aparte: que Tailwind no escanee sus archivos. */
+@source not "../../demo";
+
 @theme inline {
   --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
 }

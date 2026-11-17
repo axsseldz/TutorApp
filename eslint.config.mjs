@@ -20,6 +20,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Cliente de Prisma generado
     "src/generated/**",
+    // Demo visual independiente (tiene su propio package.json y config de ESLint)
+    "demo/**",
   ]),
 ]);
 

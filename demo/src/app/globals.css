@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Desplazamiento suave hacia anclas como #resenas */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Sesión de demo (solo visual): ver src/components/demo-session.tsx */
+html:not([data-demo-sesion]) .solo-con-sesion,
+html[data-demo-sesion] .solo-sin-sesion {
+  display: none !important;
+}
