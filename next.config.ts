@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
   // better-sqlite3 es un módulo nativo: no se empaqueta.
   serverExternalPackages: ["better-sqlite3"],
   experimental: {
+    agentUpgrade: "security",
     serverActions: {
       // Permite subir el kárdex/constancia (máx. 5 MB) más el overhead multipart.
       bodySizeLimit: "6mb",
